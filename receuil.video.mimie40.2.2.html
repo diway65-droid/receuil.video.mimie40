@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Album souvenir · Mimie 40 ans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f8f6f0;
+    --panel: #ffffff;
+    --panel-sub: #fbf9f5;
+    --accent: #d97762;
+    --accent-dark: #b85b47;
+    --rose-soft: #f4cdd2;
+    --gold-soft: #fae4b5;
+    --sage-soft: #d3e7df;
+    --ink: #2f2526;
+    --ink-light: #6a5e5f;
+    --border: rgba(184, 91, 71, 0.16);
+    --radius: 18px;
+  }
+
+  *{ box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body{
+    margin: 0; padding: 0; background-color: var(--bg);
+    background-image:
+      radial-gradient(900px 500px at 10% 0%, rgba(250,228,181,0.4), transparent 50%),
+      radial-gradient(800px 600px at 90% 10%, rgba(244,205,210,0.35), transparent 45%);
+    color: var(--ink); font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3{ font-family: 'Fraunces', Georgia, serif; font-weight: 700; color: var(--ink); margin: 0; }
+  button, input, select{ font-family: inherit; }
+  a{ color: inherit; }
+  .hidden{ display: none !important; }
+  ::selection{ background: var(--rose-soft); }
+
+  #app{ max-width: 960px; margin: 0 auto; padding: 22px 16px 60px; }
+
+  .sprockets{
+    height: 12px;
+    background-image: repeating-linear-gradient(90deg, var(--accent) 0 8px, transparent 8px 18px);
+    opacity: 0.25; border-radius: 6px; margin-bottom: 18px;
+  }
+
+  header.top{ margin-bottom: 18px; }
+  .top-title{ font-size: clamp(22px, 5vw, 30px); }
+  .top-sub{ color: var(--ink-light); font-size: 14.5px; margin-top: 4px; }
+  #videoCount{ font-weight: 600; color: var(--accent); }
+
+  .controls{
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 20px;
+    box-shadow: 0 6px 20px rgba(184, 91, 71, 0.05);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .search-row{ position: relative; }
+  .search-row input{
+    width: 100%; border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 11px 14px 11px 38px; font-size: 15px; outline: none; background: var(--panel-sub); color: var(--ink);
+  }
+  .search-row input:focus{ border-color: var(--accent); background: #fff; }
+  .search-row::before{
+    content: "🔎"; position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    font-size: 14px; opacity: .7; pointer-events:none;
+  }
+  .filter-row{ display: flex; gap: 10px; flex-wrap: wrap; }
+  .select-wrap{ flex: 1; min-width: 140px; display: flex; flex-direction: column; gap: 4px; }
+  .select-wrap label{ font-size: 11.5px; font-weight: 600; color: var(--ink-light); text-transform: none; }
+  .select-wrap select{
+    width: 100%; border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 9px 12px; font-size: 14px; background: #fff; color: var(--ink);
+  }
+
+  .status-box{ text-align: center; padding: 50px 16px; color: var(--ink-light); }
+  .status-box .big-emoji{ font-size: 34px; margin-bottom: 10px; }
+  .spinner{
+    width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 14px;
+    border: 3px solid var(--rose-soft); border-top-color: var(--accent);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .grid{
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px;
+  }
+  .card{
+    cursor: pointer; border: 1px solid var(--border); border-radius: 14px; overflow: hidden;
+    background: #efe9e2; position: relative; box-shadow: 3px 3px 0 rgba(217, 119, 98, 0.08);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{ transform: translateY(-3px); box-shadow: 4px 6px 0 rgba(217, 119, 98, 0.14); }
+  .card:active{ transform: translateY(-1px); }
+  .thumb-wrap{ position: relative; width: 100%; aspect-ratio: 3/4; background: #d8d0c6; overflow: hidden; }
+  .thumb-wrap img{ width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb-fallback{
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 30px; color: #fff;
+  }
+  .play-badge{
+    position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(255,255,255,0.85); display: flex; align-items: center; justify-content: center;
+    font-size: 13px; opacity: 0; transition: opacity .15s ease;
+  }
+  .card:hover .play-badge{ opacity: 1; }
+
+  .num-badge{
+    position: absolute; left: 6px; top: 6px; background: rgba(0,0,0,0.72); color: #fff;
+    font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+    font-variant-numeric: tabular-nums; z-index: 2; border: 1px solid rgba(255,255,255,0.25);
+  }
+
+  .dur-badge{
+    position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,0.65); color: #fff;
+    font-size: 10.5px; padding: 2px 6px; border-radius: 999px; font-variant-numeric: tabular-nums;
+  }
+  .card-meta{ padding: 9px 10px 11px; }
+  .card-author{ font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.25;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-theme{ font-size: 11.5px; color: var(--ink-light); margin-top: 2px; line-height: 1.3;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .empty-box{ text-align: center; padding: 50px 16px; }
+  .empty-box .big-emoji{ font-size: 36px; margin-bottom: 12px; }
+  .empty-box p{ color: var(--ink-light); font-size: 14.5px; margin: 4px 0 0; }
+  .link-reset{ background:none; border:none; color: var(--accent); font-weight: 600; text-decoration: underline; cursor: pointer; font-size: 14px; margin-top: 10px; }
+
+  /* ---------- Lecteur plein écran ---------- */
+  .lightbox{
+    position: fixed; inset: 0; background: rgba(20, 15, 14, 0.95); z-index: 50;
+    display: flex; align-items: center; justify-content: center; padding: env(safe-area-inset-top,14px) 0 env(safe-area-inset-bottom,14px);
+  }
+  .player-shell{
+    width: 100%; max-width: 480px; height: 100%; max-height: 900px;
+    display: flex; flex-direction: column; padding: 14px;
+  }
+  .player-top{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex: none; gap: 8px; }
+  .player-count{ color: rgba(255,255,255,0.75); font-size: 13.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .top-actions{ display: flex; align-items: center; gap: 8px; }
+  
+  .icon-btn{
+    appearance: none; border: none; background: rgba(255,255,255,0.12); color: #fff; cursor: pointer;
+    width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex: none; transition: background .15s ease;
+  }
+  .icon-btn:hover, .icon-btn:active{ background: rgba(255,255,255,0.25); }
+
+  .autoplay-btn{
+    appearance: none; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.75); border-radius: 999px; padding: 6px 10px; font-size: 11.5px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 600;
+  }
+  .autoplay-btn.active{
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+
+  .player-stage{
+    position: relative; flex: 1; min-height: 0; border-radius: 16px; overflow: hidden;
+    background: #000; display: flex; align-items: center; justify-content: center;
+  }
+  .player-stage video{ width: 100%; height: 100%; object-fit: contain; background: #000; }
+
+  .nav-btn{
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+    width: 44px; height: 44px; border-radius: 50%; border: none; cursor: pointer;
+    background: rgba(0,0,0,0.45); color: #fff; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-btn:active{ background: rgba(0,0,0,0.65); }
+  .nav-prev{ left: 10px; }
+  .nav-next{ right: 10px; }
+
+  .player-caption{
+    margin-top: 12px; flex: none; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px; padding: 12px 14px; text-align: left;
+  }
+  .player-caption .author{ font-family: 'Fraunces', serif; font-weight: 700; color: #fff; font-size: 16px; margin-bottom: 3px; }
+  .player-caption .theme{ color: rgba(255,255,255,0.72); font-size: 13.5px; line-height: 1.4; }
+
+  footer.credit{ text-align: center; margin-top: 24px; font-size: 12px; color: var(--ink-light); }
+
+  @media (max-width: 380px){
+    .grid{ grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sprockets"></div>
+
+  <header class="top">
+    <h1 class="top-title">Album souvenir 🎞️</h1>
+    <p class="top-sub"><span id="videoCount">…</span> — cherche par nom, par numéro (#) ou filtre par thème.</p>
+  </header>
+
+  <div class="controls">
+    <div class="search-row">
+      <input type="text" id="searchInput" placeholder="Rechercher un prénom ou numéro (#)..." autocomplete="off">
+    </div>
+    <div class="filter-row">
+      <div class="select-wrap">
+        <label for="themeFilter">Thème</label>
+        <select id="themeFilter">
+          <option value="all">Tous les thèmes</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <label for="sortBy">Trier par</label>
+        <select id="sortBy">
+          <option value="numAsc">Numéro d'arrivée (#1 → #…)</option>
+          <option value="date">Plus récentes d'abord</option>
+          <option value="name">Nom (A–Z)</option>
+          <option value="theme">Thème (A–Z)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div id="statusBox" class="status-box">
+    <div class="spinner"></div>
+    <p>Chargement des vidéos…</p>
+  </div>
+
+  <div id="emptyBox" class="empty-box hidden">
+    <div class="big-emoji">🔍</div>
+    <p>Aucune vidéo ne correspond à ta recherche.</p>
+    <button class="link-reset" id="btnResetFilters" type="button">Réinitialiser les filtres</button>
+  </div>
+
+  <div id="grid" class="grid"></div>
+
+  <footer class="credit">Fait avec 🧡 pour les 40 ans de Mimie Doudou</footer>
+</div>
+
+<!-- Lecteur -->
+<div id="lightbox" class="lightbox hidden">
+  <div class="player-shell" id="playerShell">
+    <div class="player-top">
+      <button class="icon-btn" id="btnClose" type="button" title="Fermer">✕</button>
+      <span class="player-count" id="playerCount">#1 · 1 / 1</span>
+      <div class="top-actions">
+        <button class="autoplay-btn" id="btnAutoplay" type="button" title="Enchaîner les vidéos automatiquement">
+          <span id="autoIndicator">⏸</span> Auto
+        </button>
+        <button class="icon-btn" id="btnFullscreen" type="button" title="Plein écran">⛶</button>
+      </div>
+    </div>
+    <div class="player-stage" id="playerStage">
+      <button class="nav-btn nav-prev" id="btnPrev" type="button" aria-label="Vidéo précédente">‹</button>
+      <video id="playerVideo" playsinline controls></video>
+      <button class="nav-btn nav-next" id="btnNext" type="button" aria-label="Vidéo suivante">›</button>
+    </div>
+    <div class="player-caption">
+      <div class="author" id="playerAuthor">—</div>
+      <div class="theme" id="playerTheme">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     FIREBASE & CHARGEMENT ACCÉLÉRÉ
+     ====================================================================== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+  import { getStorage, ref, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBzYjLHqEAjPIbwdRufpjx9KZocgesQQDw",
+    authDomain: "message-video-mimie-doudou.firebaseapp.com",
+    projectId: "message-video-mimie-doudou",
+    storageBucket: "message-video-mimie-doudou.firebasestorage.app",
+    messagingSenderId: "251932635369",
+    appId: "1:251932635369:web:ba8d1e20264d37ce1ec078"
+  };
+
+  const STORAGE_FOLDER = "mimi40-videos";
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const storage = getStorage(app);
+
+  async function fetchAllVideosOptimized(){
+    // Vérification du cache de session pour ouverture instantanée
+    const cached = sessionStorage.getItem("mimie40_gallery_cache");
+    if(cached){
+      try{ return JSON.parse(cached); }catch(e){}
+    }
+
+    await signInAnonymously(auth);
+    const folderRef = ref(storage, STORAGE_FOLDER);
+    const listing = await listAll(folderRef);
+
+    // Extraction directe des infos depuis le nom de fichier sans requêter les métadonnées Firebase
+    const results = await Promise.all(listing.items.map(async (itemRef) => {
+      try{
+        const url = await getDownloadURL(itemRef);
+        let author = "Anonyme";
+        let theme = "Message libre";
+        let time = 0;
+
+        const parts = itemRef.name.split("__");
+        if(parts.length >= 3){
+          theme = parts[0].replace(/-/g, " ");
+          author = parts[1].replace(/-/g, " ");
+          const timeMatch = parts[2].match(/^(\d+)/);
+          if(timeMatch) time = parseInt(timeMatch[1], 10);
+        }
+
+        return {
+          name: itemRef.name,
+          url,
+          author,
+          theme,
+          createdAt: time || Date.now()
+        };
+      }catch(e){
+        console.error("Erreur URL :", itemRef.name, e);
+        return null;
+      }
+    }));
+
+    const validResults = results.filter(Boolean);
+    sessionStorage.setItem("mimie40_gallery_cache", JSON.stringify(validResults));
+    return validResults;
+  }
+
+  window.__mimiFetchVideos = fetchAllVideosOptimized;
+</script>
+
+<script>
+window.addEventListener("DOMContentLoaded", function(){
+  "use strict";
+
+  const state = {
+    all: [],
+    filtered: [],
+    search: "",
+    themeFilter: "all",
+    sortBy: "numAsc",
+    currentIndex: null,
+    autoplay: false,
+    thumbGenerating: false,
+    thumbQueue: []
+  };
+
+  const grid = document.getElementById("grid");
+  const statusBox = document.getElementById("statusBox");
+  const emptyBox = document.getElementById("emptyBox");
+  const videoCountEl = document.getElementById("videoCount");
+  const searchInput = document.getElementById("searchInput");
+  const themeFilterSel = document.getElementById("themeFilter");
+  const sortBySel = document.getElementById("sortBy");
+
+  const lightbox = document.getElementById("lightbox");
+  const playerShell = document.getElementById("playerShell");
+  const playerVideo = document.getElementById("playerVideo");
+  const playerAuthor = document.getElementById("playerAuthor");
+  const playerTheme = document.getElementById("playerTheme");
+  const playerCount = document.getElementById("playerCount");
+  const btnAutoplay = document.getElementById("btnAutoplay");
+  const autoIndicator = document.getElementById("autoIndicator");
+  const btnFullscreen = document.getElementById("btnFullscreen");
+
+  const CARD_COLORS = ["#d97762", "#c9a15a", "#7fa896", "#b8798b", "#8a8ec4", "#c07b4a"];
+  function colorFor(str){
+    let h = 0;
+    for(let i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
+    return CARD_COLORS[Math.abs(h) % CARD_COLORS.length];
+  }
+  function initialFor(str){
+    const trimmed = (str||"").trim();
+    return trimmed ? trimmed.charAt(0).toUpperCase() : "?";
+  }
+  function normalize(str){
+    return (str||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  }
+  function formatDuration(sec){
+    if(!isFinite(sec) || sec <= 0) return "";
+    const m = Math.floor(sec/60), s = Math.round(sec%60);
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  /* Initialisation */
+  async function init(){
+    try{
+      const videos = await window.__mimiFetchVideos();
+      
+      // Attribution d'un numéro d'arrivée fixe par ordre chronologique
+      videos.sort((a,b)=> a.createdAt - b.createdAt);
+      videos.forEach((v, index)=>{ v.fixedNumber = index + 1; });
+
+      state.all = videos;
+      populateThemeFilter(videos);
+      statusBox.classList.add("hidden");
+      applyFilters();
+    }catch(err){
+      console.error(err);
+      statusBox.innerHTML = `
+        <div class="big-emoji">🤔</div>
+        <p>Impossible de charger les vidéos.<br>Vérifie ta connexion puis recharge la page.</p>`;
+    }
+  }
+
+  function populateThemeFilter(videos){
+    const themes = Array.from(new Set(videos.map(v => v.theme))).sort((a,b)=>a.localeCompare(b, "fr"));
+    themes.forEach(t=>{
+      const opt = document.createElement("option");
+      opt.value = t; opt.textContent = t;
+      themeFilterSel.appendChild(opt);
+    });
+  }
+
+  /* Filtres & Tri */
+  function applyFilters(){
+    const rawSearch = state.search.trim().replace(/^#/, "");
+    const q = normalize(rawSearch);
+    
+    let list = state.all.filter(v=>{
+      const matchesSearch = !q || normalize(v.author).includes(q) || normalize(v.theme).includes(q) || String(v.fixedNumber) === q;
+      const matchesTheme = state.themeFilter === "all" || v.theme === state.themeFilter;
+      return matchesSearch && matchesTheme;
+    });
+
+    if(state.sortBy === "numAsc"){
+      list.sort((a,b)=> a.fixedNumber - b.fixedNumber);
+    } else if(state.sortBy === "date"){
+      list.sort((a,b)=> b.createdAt - a.createdAt);
+    } else if(state.sortBy === "name"){
+      list.sort((a,b)=> a.author.localeCompare(b.author, "fr"));
+    } else if(state.sortBy === "theme"){
+      list.sort((a,b)=> a.theme.localeCompare(b.theme, "fr") || a.author.localeCompare(b.author, "fr"));
+    }
+
+    state.filtered = list;
+    videoCountEl.textContent = `${state.all.length} vidéo${state.all.length>1?"s":""}`;
+    renderGrid();
+  }
+
+  searchInput.addEventListener("input", ()=>{ state.search = searchInput.value; applyFilters(); });
+  themeFilterSel.addEventListener("change", ()=>{ state.themeFilter = themeFilterSel.value; applyFilters(); });
+  sortBySel.addEventListener("change", ()=>{ state.sortBy = sortBySel.value; applyFilters(); });
+  document.getElementById("btnResetFilters").addEventListener("click", ()=>{
+    state.search = ""; state.themeFilter = "all"; state.sortBy = "numAsc";
+    searchInput.value = ""; themeFilterSel.value = "all"; sortBySel.value = "numAsc";
+    applyFilters();
+  });
+
+  /* Rendu Grille */
+  let thumbObserver = null;
+
+  function renderGrid(){
+    grid.innerHTML = "";
+    if(state.filtered.length === 0){
+      emptyBox.classList.remove("hidden");
+      return;
+    }
+    emptyBox.classList.add("hidden");
+
+    if(thumbObserver) thumbObserver.disconnect();
+    thumbObserver = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting){
+          const idx = Number(entry.target.dataset.idx);
+          enqueueThumbnail(state.filtered[idx], entry.target);
+          thumbObserver.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "150px" });
+
+    state.filtered.forEach((v, idx)=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.idx = idx;
+      card.innerHTML = `
+        <div class="thumb-wrap" style="background:${colorFor(v.author)}">
+          <span class="num-badge">#${v.fixedNumber}</span>
+          <div class="thumb-fallback">${initialFor(v.author)}</div>
+          <div class="play-badge">▶</div>
+          <span class="dur-badge hidden"></span>
+        </div>
+        <div class="card-meta">
+          <div class="card-author">${escapeHtml(v.author)}</div>
+          <div class="card-theme">${escapeHtml(v.theme)}</div>
+        </div>`;
+      card.addEventListener("click", ()=> openPlayer(idx));
+      grid.appendChild(card);
+      thumbObserver.observe(card);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* File d'attente pour capturer les vignettes une par une sans surchauffe */
+  function enqueueThumbnail(videoData, cardEl){
+    if(videoData.thumbDataUrl){
+      applyThumb(cardEl, videoData.thumbDataUrl, videoData.duration);
+      return;
+    }
+    state.thumbQueue.push({ videoData, cardEl });
+    processThumbQueue();
+  }
+
+  function processThumbQueue(){
+    if(state.thumbGenerating || state.thumbQueue.length === 0) return;
+    state.thumbGenerating = true;
+    const { videoData, cardEl } = state.thumbQueue.shift();
+
+    const hidden = document.createElement("video");
+    hidden.crossOrigin = "anonymous";
+    hidden.muted = true;
+    hidden.playsInline = true;
+    hidden.preload = "metadata";
+    hidden.src = videoData.url;
+
+    const cleanup = ()=>{
+      hidden.src = "";
+      hidden.remove();
+      state.thumbGenerating = false;
+      setTimeout(processThumbQueue, 40);
+    };
+
+    hidden.addEventListener("loadedmetadata", ()=>{
+      videoData.duration = hidden.duration;
+      try{ hidden.currentTime = Math.min(0.8, (hidden.duration || 1) / 2); }catch(e){}
+    });
+
+    hidden.addEventListener("seeked", ()=>{
+      try{
+        const canvas = document.createElement("canvas");
+        canvas.width = 240;
+        canvas.height = 320;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(hidden, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+        videoData.thumbDataUrl = dataUrl;
+        applyThumb(cardEl, dataUrl, videoData.duration);
+      }catch(e){}
+      cleanup();
+    }, { once: true });
+
+    hidden.addEventListener("error", cleanup, { once: true });
+    document.body.appendChild(hidden);
+  }
+
+  function applyThumb(cardEl, dataUrl, duration){
+    if(!cardEl) return;
+    const wrap = cardEl.querySelector(".thumb-wrap");
+    if(!wrap) return;
+    const img = document.createElement("img");
+    img.src = dataUrl;
+    img.alt = "";
+    wrap.querySelector(".thumb-fallback")?.remove();
+    wrap.prepend(img);
+    const durBadge = wrap.querySelector(".dur-badge");
+    const durText = formatDuration(duration);
+    if(durBadge && durText){
+      durBadge.textContent = durText;
+      durBadge.classList.remove("hidden");
+    }
+  }
+
+  /* Lecteur */
+  function openPlayer(idx){
+    state.currentIndex = idx;
+    lightbox.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    loadCurrentVideo();
+  }
+
+  function closePlayer(){
+    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+    lightbox.classList.add("hidden");
+    document.body.style.overflow = "";
+    playerVideo.pause();
+    playerVideo.removeAttribute("src");
+    playerVideo.load();
+  }
+
+  function loadCurrentVideo(){
+    const v = state.filtered[state.currentIndex];
+    if(!v) return;
+    playerVideo.src = v.url;
+    playerVideo.play().catch(()=>{});
+    playerAuthor.textContent = v.author;
+    playerTheme.textContent = v.theme;
+    playerCount.textContent = `Vidéo #${v.fixedNumber} · ${state.currentIndex + 1} / ${state.filtered.length}`;
+  }
+
+  function goPrev(){
+    if(state.currentIndex === null) return;
+    state.currentIndex = (state.currentIndex - 1 + state.filtered.length) % state.filtered.length;
+    loadCurrentVideo();
+  }
+  function goNext(){
+    if(state.currentIndex === null) return;
+    state.currentIndex = (state.currentIndex + 1) % state.filtered.length;
+    loadCurrentVideo();
+  }
+
+  /* Lecture automatique */
+  btnAutoplay.addEventListener("click", ()=>{
+    state.autoplay = !state.autoplay;
+    btnAutoplay.classList.toggle("active", state.autoplay);
+    autoIndicator.textContent = state.autoplay ? "▶" : "⏸";
+  });
+
+  playerVideo.addEventListener("ended", ()=>{
+    if(state.autoplay) goNext();
+  });
+
+  /* Plein écran natif */
+  btnFullscreen.addEventListener("click", ()=>{
+    if(!document.fullscreenElement){
+      playerShell.requestFullscreen().catch(()=>{
+        if(playerVideo.webkitEnterFullscreen) playerVideo.webkitEnterFullscreen();
+      });
+    } else {
+      document.exitFullscreen().catch(()=>{});
+    }
+  });
+
+  document.getElementById("btnClose").addEventListener("click", closePlayer);
+  document.getElementById("btnPrev").addEventListener("click", goPrev);
+  document.getElementById("btnNext").addEventListener("click", goNext);
+
+  lightbox.addEventListener("click", (e)=>{
+    if(e.target === lightbox) closePlayer();
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(lightbox.classList.contains("hidden")) return;
+    if(e.key === "Escape") closePlayer();
+    else if(e.key === "ArrowLeft") goPrev();
+    else if(e.key === "ArrowRight") goNext();
+    else if(e.key === " "){
+      e.preventDefault();
+      playerVideo.paused ? playerVideo.play() : playerVideo.pause();
+    }
+  });
+
+  init();
+});
+</script>
+</body>
+</html>
